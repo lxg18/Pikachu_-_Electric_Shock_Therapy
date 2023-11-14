@@ -43,6 +43,7 @@ let changeDirectionTime = 500;                  // время, по истече
 let lightRestoreTime = lightRestoreTimeDefault; // время на восстановление заряда, мс
 let controlMode = 0;                            // режим управления 0 - случайный выбор направления, 1 - следования к точке
 let enableBonusActiveTrack = 1;                 // разрешение на сбор бонусов для нарка
+let isNextLevel = 0;                            // для обработки нажатия Enter единожды при смене уровня
 
 let bonus = { // БОНУС
     x: 0, 
@@ -288,6 +289,7 @@ function Collision() {
 }
 
 function changeLevel() { // установка начальных значений для каждого уровня
+    isNextLevel = 0;
     Game_mode = 1;
     spd_koef2_default = spd_lvl[level-1];
     spd_koef2 = spd_koef2_default;
@@ -384,7 +386,7 @@ function lights() { // заряды
 }
 
 /* ГЛАВНЫЙ ЦИКЛ */
-document.onload = timer = setInterval(loop, period); 		
+document.onload = setInterval(loop, period); 		
 function loop() {	
     let canvas = document.getElementById("canvas");
     ctx = canvas.getContext('2d'); 	// контекст
@@ -904,15 +906,22 @@ document,addEventListener("keydown", (e) => { // если нажали клав�
         case "KeyX": if (lightsCount > 0) attack = 1; break;
         case "Enter": 
             if (level > 4 || Game_mode == 4) welcome_song_trig = 0, level = 1, Game_mode = 0; 
-                else if (Game_mode == 0 || Game_mode == 3) {
-                if (Game_mode == 0) welcome.play();
-                setTimeout(function () { changeLevel(); }, 1000); 
+            else {
+                if (isNextLevel == 0) {
+                    if (Game_mode == 0) welcome.play(); // начало                     
+                    if (Game_mode == 0 || Game_mode == 3) {                        
+                        isNextLevel = 1;
+                        setTimeout(function () { changeLevel(); }, 1000); // выигрыш
+                    }
+                
+                }
+                
             }
             break;
         case "Space": 
-            if (switch_trig == 0 && Game_mode != 0 && Game_mode != 4) { // пауза в игре
+            if (switch_trig == 0 && (Game_mode == 1 || Game_mode == 2)) { // пауза в игре
                 switch_trig = 1;
-                Game_mode == 1 ? Game_mode = 2 : Game_mode = 1; 
+                Game_mode = (Game_mode == 1) ? 2 : 1; 
                 toogleAudio();
             }
             break;
